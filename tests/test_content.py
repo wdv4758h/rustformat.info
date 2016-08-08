@@ -1,7 +1,24 @@
 # -*- encoding: utf-8 -*-
 import sys
+from subprocess import run, PIPE
+from tempfile import NamedTemporaryFile, gettempdir
+from os import remove
 
 import pytest
+
+
+def run_rust(code):
+    with NamedTemporaryFile(suffix='.rs') as file:
+        file.write(b'fn main () {\n')
+        file.write('    let s = {};\n'.format(code).encode())
+        file.write(b'    println!("{}", s);\n')
+        file.write(b'}')
+        file.flush()
+        run(["rustc", "--out-dir={}".format(gettempdir()), file.name])
+        executable = file.name.rsplit('.')[0]
+        result = run([executable], stdout=PIPE).stdout
+        remove(executable)
+    return result.decode().rstrip('\n')
 
 
 def test_simple():
@@ -18,29 +35,33 @@ def test_simple():
     """
     old_result = '%s %s' % ('one', 'two', )
     new_result = '{} {}'.format('one', 'two')
+    rust_result = 'format!("{} {}", "one", "two")'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == 'one two'  # output
 
 
 def test_simple_2():
     old_result = '%d %d' % (1, 2)
     new_result = '{} {}'.format(1, 2)
+    rust_result = 'format!("{} {}", 1, 2)'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert new_result == "1 2"  # output
 
 
 def test_simple_3():
     """
-    With new style formatting it is possible (and in Python 2.6 even mandatory)
+    With Python's new style formatting it is possible (and in Python 2.6 even mandatory)
     to give placeholders an explicit positional index.
 
     This allows for re-arranging the order of display without changing the
     arguments.
     """
     new_result = '{1} {0}'.format('one', 'two')
+    rust_result = 'format!("{1} {0}", "one", "two")'
 
+    assert new_result == run_rust(rust_result)
     assert new_result == 'two one'  # output
 
 
@@ -48,7 +69,7 @@ def test_conversion_flags():
     """
     # Value conversion
 
-    The new-style simple formatter calls by default the [`__format__()`][1]
+    The Python's new-style simple formatter calls by default the [`__format__()`][1]
     method of an object for its representation. If you just want to render the
     output of `str(...)` or `repr(...)` you can use the `!s` or `!r` conversion
     flags.
@@ -88,6 +109,18 @@ def test_ascii_conversion():
     assert new_result == 'räpr r\\xe4pr'  # output
 
 
+def test_debug_conversion():
+    """
+    In Rust there exists an additional conversion flag that can use for who implmeneted [std::fmt::Debug][1] trait:
+
+    [1]: https://doc.rust-lang.org/std/fmt/trait.Debug.html
+    """
+
+    rust_result = 'format!("{:?}", vec![1, 2, 3])'
+
+    assert run_rust(rust_result) == '[1, 2, 3]'
+
+
 def test_string_pad_align():
     """
     # Padding and aligning strings
@@ -96,7 +129,7 @@ def test_string_pad_align():
     needed to represent the content. It is however also possible to define that
     a value should be padded to a specific length.
 
-    Unfortunately the default alignment differs between old and new style
+    Unfortunately the default alignment differs between Python's old and new style
     formatting. The old style defaults to right aligned while for new style
     it's left.
 
@@ -104,8 +137,9 @@ def test_string_pad_align():
     """
     old_result = '%10s' % ('test', )
     new_result = '{:>10}'.format('test')
+    rust_result = 'format!("{:>10}", "test")'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == '      test'  # output
 
 
@@ -116,8 +150,9 @@ def test_string_pad_align_2():
 
     old_result = '%-10s' % ('test', )
     new_result = '{:10}'.format('test')
+    rust_result = 'format!("{:10}", "test")'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == 'test      '  # output
 
 
@@ -131,21 +166,24 @@ def test_string_variable_pad_align():
     """
     old_result = '%*s' % (-8, 'test')
     new_result = '{:<{}s}'.format('test', 8)
+    rust_result = 'format!("{:<1$}", "test", 8)'    # TODO, more options
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == 'test    '  # output
 
 
 def test_string_pad_align_3():
     """
-    Again, new style formatting surpasses the old variant by providing more
+    Again, Python's new style formatting surpasses the old variant by providing more
     control over how values are padded and aligned.
 
     You are able to choose the padding character:
     """
 
     new_result = '{:_<10}'.format('test')
+    rust_result = 'format!("{:_<10}", "test")'
 
+    assert new_result == run_rust(rust_result)
     assert new_result == 'test______'  # output
 
 
@@ -155,7 +193,9 @@ def test_string_pad_align_4():
     """
 
     new_result = '{:^10}'.format('test')
+    rust_result = 'format!("{:^10}", "test")'
 
+    assert new_result == run_rust(rust_result)
     assert new_result == '   test   '  # output
 
 
@@ -172,8 +212,9 @@ def test_string_truncating():
     """
     old_result = '%.5s' % ('xylophone', )
     new_result = '{:.5}'.format('xylophone')
+    rust_result = 'format!("{:.5}", "xylophone")'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == 'xylop'  # output
 
 
@@ -183,8 +224,10 @@ def test_string_truncate_2():
     """
     old_result = '%.*s' % (7, 'xylophone', )
     new_result = '{:.{}}'.format('xylophone', 7)
+    rust_result = 'format!("{:.1$}", "xylophone", 7)'
+    # rust_result = 'format!("{:.*}", 7, "xylophone")'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == 'xylopho'  # output
 
 
@@ -197,8 +240,9 @@ def test_string_trunc_pad():
 
     old_result = '%-10.5s' % ('xylophone', )
     new_result = '{:10.5}'.format('xylophone')
+    rust_result = 'format!("{:10.5}", "xylophone")'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert new_result == 'xylop     '  # output
 
 
@@ -212,8 +256,9 @@ def test_number():
     """
     old_result = '%d' % (42, )
     new_result = '{:d}'.format(42)
+    rust_result = 'format!("{}", 42)'     # FIXME
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == '42'  # output
 
 
@@ -223,8 +268,9 @@ def test_number_2():
     """
     old_result = '%f' % (3.141592653589793, )
     new_result = '{:f}'.format(3.141592653589793)
+    rust_result = 'format!("{:.6}", 3.141592653589793)'     # FIXME
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == '3.141593'  # output
 
 
@@ -236,8 +282,9 @@ def test_number_padding():
     """
     old_result = '%4d' % (42, )
     new_result = '{:4d}'.format(42)
+    rust_result = 'format!("{:4}", 42)'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == '  42'  # output
 
 
@@ -252,23 +299,25 @@ def test_number_padding_2():
     """
     old_result = '%06.2f' % (3.141592653589793, )
     new_result = '{:06.2f}'.format(3.141592653589793)
+    rust_result = 'format!("{:06.2}", 3.141592653589793)'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == '003.14'  # output
 
 
 def test_number_padding_3():
     """
     For integer values providing a precision doesn't make much sense and is
-    actually forbidden in the new style (it will result in a ValueError).
+    actually forbidden in the Python's new style (it will result in a ValueError).
     """
     old_result = '%04d' % (42, )
     new_result = '{:04d}'.format(42)
+    rust_result = 'format!("{:04}", 42)'
 
     with pytest.raises(ValueError):
         '{:04.2d}'.format(42)
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == '0042'  # output
 
 
@@ -282,8 +331,9 @@ def test_number_sign():
 
     old_result = '%+d' % (42, )
     new_result = '{:+d}'.format(42)
+    rust_result = 'format!("{:+}", 42)'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == '+42'  # output
 
 
@@ -294,6 +344,7 @@ def test_number_sign_2():
     """
     old_result = '% d' % (-23, )
     new_result = '{: d}'.format(-23)
+    # TODO
 
     assert old_result == new_result
     assert old_result == '-23'  # output
@@ -302,18 +353,19 @@ def test_number_sign_2():
 def test_number_sign_3():
     old_result = '% d' % (42, )
     new_result = '{: d}'.format(42)
+    # TODO
 
-    assert old_result == new_result
     assert old_result == ' 42'  # output
 
 
 def test_number_sign_4():
     """
-    New style formatting is also able to control the position of the sign
+    Python's new style formatting is also able to control the position of the sign
     symbol relative to the padding.
     """
 
     new_result = '{:=5d}'.format(-23)
+    # TODO
 
     assert new_result == '-  23'  # output
 
@@ -322,7 +374,7 @@ def test_named_placeholders():
     """
     # Named placeholders
 
-    Both formatting styles support named placeholders.
+    Python's both formatting styles support named placeholders.
     """
     data = {
         'first': 'Hodor',
@@ -331,8 +383,9 @@ def test_named_placeholders():
 
     old_result = '%(first)s %(last)s' % data
     new_result = '{first} {last}'.format(**data)
+    rust_result = 'format!("{first} {last}", first="Hodor", last="Hodor!")'
 
-    assert old_result == new_result
+    assert old_result == new_result == run_rust(rust_result)
     assert old_result == 'Hodor Hodor!'  # output
 
 
@@ -342,7 +395,9 @@ def test_named_placeholders_2():
     """
 
     new_result = '{first} {last}'.format(first="Hodor", last="Hodor!")
+    rust_result = 'format!("{first} {last}", first="Hodor", last="Hodor!")'
 
+    assert new_result == run_rust(rust_result)
     assert new_result == 'Hodor Hodor!'  # output
 
 
@@ -350,7 +405,7 @@ def test_getitem_and_getattr():
     """
     # Getitem and Getattr
 
-    New style formatting allows even greater flexibility in accessing nested
+    Python's new style formatting allows even greater flexibility in accessing nested
     data structures.
 
     It supports accessing containers that support `__getitem__` like for
@@ -363,6 +418,7 @@ def test_getitem_and_getattr():
     }
 
     new_result = '{p[first]} {p[last]}'.format(p=person)
+    # TODO
 
     assert new_result == 'Jean-Luc Picard'  # output
 
@@ -371,6 +427,7 @@ def test_getitem_and_getattr_2():
     data = [4, 8, 15, 16, 23, 42]
 
     new_result = '{d[4]} {d[5]}'.format(d=data)
+    # TODO
 
     assert new_result == '23 42'  # output
 
@@ -384,6 +441,7 @@ def test_getitem_and_getattr_3():
         type = "tree"
 
     new_result = '{p.type}'.format(p=Plant())
+    # TODO
 
     assert new_result == 'tree'  # output
 
@@ -402,6 +460,7 @@ def test_getitem_and_getattr_4():
         }]
 
     new_result = '{p.type}: {p.kinds[0][name]}'.format(p=Plant())
+    # TODO
 
     assert new_result == 'tree: oak'  # output
 
@@ -410,13 +469,14 @@ def test_datetime():
     """
     # Datetime
 
-    Additionally new style formatting allows objects to control their own
+    Additionally Python's new style formatting allows objects to control their own
     rendering. This for example allows datetime objects to be formatted inline:
     """
 
     from datetime import datetime
 
     new_result = '{:%Y-%m-%d %H:%M}'.format(datetime(2001, 2, 3, 4, 5))
+    # TODO
 
     assert new_result == '2001-02-03 04:05'  # output
 
@@ -437,5 +497,6 @@ def test_custom_1():
             return "HAL 9000"
 
     new_result = '{:open-the-pod-bay-doors}'.format(HAL9000())
+    # TODO
 
     assert new_result == "I'm afraid I can't do that."  # output

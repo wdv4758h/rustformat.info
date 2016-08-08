@@ -117,7 +117,7 @@ footer {
     }
 }
 
-#teaser {
+#teaser, #language {
     background: lighten($blue, 60);
     padding: 0.2rem 1rem;
     color: $blue;
@@ -134,11 +134,11 @@ footer {
     border-radius: $radius;
 }
 
-.new, .old, .output {
+.python_new, .python_old, .rust, .output {
     display: flex;
     flex-direction: row;
     h3 {
-        min-width: 75px;
+        min-width: 100px;
         margin-right: 10px;
     }
     pre {

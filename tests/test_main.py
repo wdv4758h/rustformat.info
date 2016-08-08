@@ -136,8 +136,9 @@ def test_parse_function_empty():
     assert example.title is None
     assert example.details is None
     assert example.setup == "pass"
-    assert example.old == ""
-    assert example.new == ""
+    assert example.python_old == ""
+    assert example.python_new == ""
+    assert example.rust == ""
     assert example.output == ""
 
 
