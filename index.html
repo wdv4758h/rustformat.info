@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+    <head>
+        <title>PyFormat: Using % and .format() for great good!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.1.1/gh-fork-ribbon.min.css" />
+        <!--[if lt IE 9]>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.1.1/gh-fork-ribbon.ie.min.css" />
+        <![endif]-->
+        <link href="assets/css/style.8cf065dd.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="github-fork-ribbon-wrapper right">
+            <div class="github-fork-ribbon">
+                <a href="https://github.com/wdv4758h/rustformat.info">Contribute on GitHub</a>
+            </div>
+        </div>
+        <div id="page">
+            <header>
+                <h1 id="logo">
+                    <b><i>Py</i>Format</b><b><i>Rust</i>Format</b></br>
+                    Using <i>%</i> and <i>.format()</i> and <i>format!</i> for great good!
+                </h1>
+            </header>
+            <div id="main">
+                <section id="teaser">
+                    <p>
+                        <b>Python</b> has had awesome string formatters for many years but the documentation on them is far too theoretic and technical.
+                        With this site we try to show you the most common use-cases covered by the <a href="https://docs.python.org/2/library/stdtypes.html#string-formatting">old</a> and <a href="https://docs.python.org/3/library/string.html#string-formatting">new</a> style string formatting API with practical examples.
+                    </p>
+                    <p>
+                        If not otherwise stated all examples work with Python 2.7, 3.2, 3.3, 3.4, and 3.5 without requiring any additional libraries or monkey-patching.
+                    </p>
+                    <p>
+                        Further details about these two formatting methods can be found in the official Python documentation:
+                    </p>
+                    <ul>
+                        <li><a href="https://docs.python.org/2/library/stdtypes.html#string-formatting">old style</a></li>
+                        <li><a href="https://docs.python.org/3/library/string.html#string-formatting">new style</a></li>
+                    </ul>
+                    <hr>
+                    <p><b>Rust</b> has awesome string formatter, too. The <a href="https://doc.rust-lang.org/std/fmt/">documentation</a> explains it very well. With this site we try to compare the most common use-cases with Python's formatters.</p>
+                    <hr>
+                    <p>If you want to contribute more examples, feel free to create a pull-request on <a href="https://github.com/wdv4758h/rustformat.info">Github</a>!</p>
+                    <p>This site is modified from <a href="https://pyformat.info/">PyFormat</a></p>
+                </section>
+                <section id="language">
+                    <ul>
+                        Follow codes are tested with :
+                        
+                        <li>Python version: Python 3.5.2
+</li>
+                        
+                        <li>Rust version: rustc 1.12.0-nightly (b30eff7ba 2016-08-05)
+</li>
+                        
+                    </ul>
+                </section>
+                <section id="toc">
+                    <h2>Table of Contents:</h2>
+                    <ol>
+                        
+                            
+                                <li>
+                                    <a href="#simple">Basic formatting</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#conversion_flags">Value conversion</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#string_pad_align">Padding and aligning strings</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#string_truncating">Truncating long strings</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#string_trunc_pad">Combining truncating and padding</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                                <li>
+                                    <a href="#number">Numbers</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#number_padding">Padding numbers</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#number_sign">Signed numbers</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#named_placeholders">Named placeholders</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#getitem_and_getattr">Getitem and Getattr</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <li>
+                                    <a href="#datetime">Datetime</a>
+                                    
+                                </li>
+                            
+                        
+                            
+                                <li>
+                                    <a href="#custom_1">Custom objects</a>
+                                    
+                                </li>
+                            
+                        
+                    </ol>
+                </section>
+                <section id="details">
+                    
+                        
+                        <section id="simple" >
+        
+            <h2>Basic formatting</h2>
+        
+        
+            <div class="description"><p>Simple positional formatting is probably the most common use-case. Use it
+if the order of your arguments is not likely to change and you only have
+very few elements you want to concatenate.</p>
+<p>Since the elements are not represented by something as descriptive as a
+name this simple style should only be used to format a relatively small
+number of elements.</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{} {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;one&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;two&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>o</i><i>n</i><i>e</i><i> </i><i>t</i><i>w</i><i>o</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="simple_2" class="continuation">
+        
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{} {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{} {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>1</i><i> </i><i>2</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="simple_3" class="continuation">
+        
+        
+            <div class="description"><p>With Python's new style formatting it is possible (and in Python 2.6 even mandatory)
+to give placeholders an explicit positional index.</p>
+<p>This allows for re-arranging the order of display without changing the
+arguments.</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{1} {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{1} {0}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;one&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;two&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>t</i><i>w</i><i>o</i><i> </i><i>o</i><i>n</i><i>e</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="conversion_flags" >
+        
+            <h2>Value conversion</h2>
+        
+        
+            <div class="description"><p>The Python's new-style simple formatter calls by default the <a href="https://docs.python.org/3/reference/datamodel.html#object.__format__"><code>__format__()</code></a>
+method of an object for its representation. If you just want to render the
+output of <code>str(...)</code> or <code>repr(...)</code> you can use the <code>!s</code> or <code>!r</code> conversion
+flags.</p>
+<p>In %-style you usually use <code>%s</code> for the string representation but there is
+<code>%r</code> for a <code>repr(...)</code> conversion.</p></div>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Data</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;str&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;repr&#39;</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Data</span><span class="p">(),</span> <span class="n">Data</span><span class="p">())</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{0!s} {0!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Data</span><span class="p">())</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>s</i><i>t</i><i>r</i><i> </i><i>r</i><i>e</i><i>p</i><i>r</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="ascii_conversion" class="continuation">
+        
+        
+            <div class="description"><p>In Python 3 there exists an additional conversion flag that uses the output
+of <code>repr(...)</code> but uses <code>ascii(...)</code> instead.</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Data</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;räpr&#39;</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{0!r} {0!a}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Data</span><span class="p">())</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>r</i><i>ä</i><i>p</i><i>r</i><i> </i><i>r</i><i>\</i><i>x</i><i>e</i><i>4</i><i>p</i><i>r</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="debug_conversion" class="continuation">
+        
+        
+            <div class="description"><p>In Rust there exists an additional conversion flag that can use for who implmeneted <a href="https://doc.rust-lang.org/std/fmt/trait.Debug.html">std::fmt::Debug</a> trait:</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+                <p class="notice">This operation is not available with Python new-style formatting.</p>
+            
+            
+        
+        
+        <div class="code">
+            
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:?}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">vec</span><span class="o">!</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">])</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>[</i><i>1</i><i>,</i><i> </i><i>2</i><i>,</i><i> </i><i>3</i><i>]</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_pad_align" >
+        
+            <h2>Padding and aligning strings</h2>
+        
+        
+            <div class="description"><p>By default values are formatted to take up only as many characters as
+needed to represent the content. It is however also possible to define that
+a value should be padded to a specific length.</p>
+<p>Unfortunately the default alignment differs between Python's old and new style
+formatting. The old style defaults to right aligned while for new style
+it's left.</p>
+<p>Align right:</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%10s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:&gt;10}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:&gt;10}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i> </i><i> </i><i> </i><i> </i><i> </i><i> </i><i>t</i><i>e</i><i>s</i><i>t</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_pad_align_2" class="continuation">
+        
+        
+            <div class="description"><p>Align left:</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%-10s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:10}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:10}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>t</i><i>e</i><i>s</i><i>t</i><i> </i><i> </i><i> </i><i> </i><i> </i><i> </i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_variable_pad_align" class="continuation">
+        
+        
+            <div class="description"><p>By argument:</p>
+<p>In the previous example, the value '10' is encoded as part of the format
+string.  However, it is possible to also supply such values as an
+argument.</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%*s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="o">-</span> <span class="mi">8</span><span class="p">),</span> <span class="s1">&#39;test&#39;</span><span class="p">)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:&lt;{}s}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:&lt;1$}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>t</i><i>e</i><i>s</i><i>t</i><i> </i><i> </i><i> </i><i> </i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_pad_align_3" class="continuation">
+        
+        
+            <div class="description"><p>Again, Python's new style formatting surpasses the old variant by providing more
+control over how values are padded and aligned.</p>
+<p>You are able to choose the padding character:</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:_&lt;10}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:_&lt;10}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>t</i><i>e</i><i>s</i><i>t</i><i>_</i><i>_</i><i>_</i><i>_</i><i>_</i><i>_</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_pad_align_4" class="continuation">
+        
+        
+            <div class="description"><p>And also center align values:</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:^10}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:^10}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i> </i><i> </i><i> </i><i>t</i><i>e</i><i>s</i><i>t</i><i> </i><i> </i><i> </i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_truncating" >
+        
+            <h2>Truncating long strings</h2>
+        
+        
+            <div class="description"><p>Inverse to padding it is also possible to truncate overly long values
+to a specific number of characters.</p>
+<p>The number behind a <code>.</code> in the format specifies the precision of the
+output. For strings that means that the output is truncated to the
+specified length. In our example this would be 5 characters.</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%.5s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;xylophone&#39;</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:.5}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;xylophone&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:.5}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;xylophone&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>x</i><i>y</i><i>l</i><i>o</i><i>p</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_truncate_2" class="continuation">
+        
+        
+            <div class="description"><p>By argument:</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%.*s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;xylophone&#39;</span><span class="p">)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:.{}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;xylophone&#39;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:.1$}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;xylophone&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>x</i><i>y</i><i>l</i><i>o</i><i>p</i><i>h</i><i>o</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="string_trunc_pad" >
+        
+            <h2>Combining truncating and padding</h2>
+        
+        
+            <div class="description"><p>It is also possible to combine truncating and padding:</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%-10.5s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;xylophone&#39;</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:10.5}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;xylophone&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:10.5}&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;xylophone&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>x</i><i>y</i><i>l</i><i>o</i><i>p</i><i> </i><i> </i><i> </i><i> </i><i> </i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number" >
+        
+            <h2>Numbers</h2>
+        
+        
+            <div class="description"><p>Of course it is also possible to format numbers.</p>
+<p>Integers:</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">42</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>4</i><i>2</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_2" class="continuation">
+        
+        
+            <div class="description"><p>Floats:</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">3.141592653589793</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mf">3.141592653589793</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:.6}&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">3.141592653589793</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>3</i><i>.</i><i>1</i><i>4</i><i>1</i><i>5</i><i>9</i><i>3</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_padding" >
+        
+            <h2>Padding numbers</h2>
+        
+        
+            <div class="description"><p>Similar to strings numbers can also be constrained to a specific width.</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%4d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">42</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:4d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:4}&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i> </i><i> </i><i>4</i><i>2</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_padding_2" class="continuation">
+        
+        
+            <div class="description"><p>Again similar to truncating strings the precision for floating point
+numbers limits the number of positions after the decimal point.</p>
+<p>For floating points the padding value represents the length of the complete
+output. In the example below we want our output to have at least 6
+characters with 2 after the decimal point.</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%06.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">3.141592653589793</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:06.2f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mf">3.141592653589793</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:06.2}&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">3.141592653589793</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>0</i><i>0</i><i>3</i><i>.</i><i>1</i><i>4</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_padding_3" class="continuation">
+        
+        
+            <div class="description"><p>For integer values providing a precision doesn't make much sense and is
+actually forbidden in the Python's new style (it will result in a ValueError).</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%04d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">42</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:04d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:04}&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>0</i><i>0</i><i>4</i><i>2</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_sign" >
+        
+            <h2>Signed numbers</h2>
+        
+        
+            <div class="description"><p>By default only negative numbers are prefixed with a sign. This can be
+changed of course.</p></div>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%+d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">42</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:+d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{:+}&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>+</i><i>4</i><i>2</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_sign_2" class="continuation">
+        
+        
+            <div class="description"><p>Use a space character to indicate that negative numbers should be prefixed
+with a minus symbol and a leading space should be used for positive ones.</p></div>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">% d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="o">-</span> <span class="mi">23</span><span class="p">),)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{: d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="o">-</span> <span class="mi">23</span><span class="p">))</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>-</i><i>2</i><i>3</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_sign_3" class="continuation">
+        
+        
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">% d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">42</span><span class="p">,)</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{: d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i> </i><i>4</i><i>2</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="number_sign_4" class="continuation">
+        
+        
+            <div class="description"><p>Python's new style formatting is also able to control the position of the sign
+symbol relative to the padding.</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:=5d}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="o">-</span> <span class="mi">23</span><span class="p">))</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>-</i><i> </i><i> </i><i>2</i><i>3</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="named_placeholders" >
+        
+            <h2>Named placeholders</h2>
+        
+        
+            <div class="description"><p>Python's both formatting styles support named placeholders.</p></div>
+            
+            
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;first&#39;</span><span class="p">:</span> <span class="s1">&#39;Hodor&#39;</span><span class="p">,</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span> <span class="s1">&#39;Hodor!&#39;</span><span class="p">}</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    <div class="highlight"><pre><span></span><span class="s1">&#39;</span><span class="si">%(first)s</span><span class="s1"> </span><span class="si">%(last)s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">data</span>
+</pre></div>
+
+                </div>
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{first} {last}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{first} {last}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">first</span><span class="o">=</span><span class="s">&quot;Hodor&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="s">&quot;Hodor!&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>H</i><i>o</i><i>d</i><i>o</i><i>r</i><i> </i><i>H</i><i>o</i><i>d</i><i>o</i><i>r</i><i>!</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="named_placeholders_2" class="continuation">
+        
+        
+            <div class="description"><p><code>.format()</code> also accepts keyword arguments.</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+        
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{first} {last}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="s1">&#39;Hodor&#39;</span><span class="p">,</span> <span class="n">last</span><span class="o">=</span><span class="s1">&#39;Hodor!&#39;</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+            <div class="rust">
+                <h3>Rust</h3>
+                <div class="highlight"><pre><span></span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{first} {last}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">first</span><span class="o">=</span><span class="s">&quot;Hodor&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="s">&quot;Hodor!&quot;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
+
+            </div>
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>H</i><i>o</i><i>d</i><i>o</i><i>r</i><i> </i><i>H</i><i>o</i><i>d</i><i>o</i><i>r</i><i>!</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="getitem_and_getattr" >
+        
+            <h2>Getitem and Getattr</h2>
+        
+        
+            <div class="description"><p>Python's new style formatting allows even greater flexibility in accessing nested
+data structures.</p>
+<p>It supports accessing containers that support <code>__getitem__</code> like for
+example dictionaries and lists:</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="n">person</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;first&#39;</span><span class="p">:</span> <span class="s1">&#39;Jean-Luc&#39;</span><span class="p">,</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span> <span class="s1">&#39;Picard&#39;</span><span class="p">}</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{p[first]} {p[last]}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">person</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>J</i><i>e</i><i>a</i><i>n</i><i>-</i><i>L</i><i>u</i><i>c</i><i> </i><i>P</i><i>i</i><i>c</i><i>a</i><i>r</i><i>d</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="getitem_and_getattr_2" class="continuation">
+        
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">42</span><span class="p">]</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{d[4]} {d[5]}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>2</i><i>3</i><i> </i><i>4</i><i>2</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="getitem_and_getattr_3" class="continuation">
+        
+        
+            <div class="description"><p>As well as accessing attributes on objects via <code>getattr()</code>:</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Plant</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;tree&#39;</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{p.type}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">Plant</span><span class="p">())</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>t</i><i>r</i><i>e</i><i>e</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="getitem_and_getattr_4" class="continuation">
+        
+        
+            <div class="description"><p>Both type of access can be freely mixed and arbitrarily nested:</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Plant</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;tree&#39;</span>
+    <span class="n">kinds</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;oak&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;maple&#39;</span><span class="p">}]</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{p.type}: {p.kinds[0][name]}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">Plant</span><span class="p">())</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>t</i><i>r</i><i>e</i><i>e</i><i>:</i><i> </i><i>o</i><i>a</i><i>k</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="datetime" >
+        
+            <h2>Datetime</h2>
+        
+        
+            <div class="description"><p>Additionally Python's new style formatting allows objects to control their own
+rendering. This for example allows datetime objects to be formatted inline:</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>2</i><i>0</i><i>0</i><i>1</i><i>-</i><i>0</i><i>2</i><i>-</i><i>0</i><i>3</i><i> </i><i>0</i><i>4</i><i>:</i><i>0</i><i>5</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                        
+                        <section id="custom_1" >
+        
+            <h2>Custom objects</h2>
+        
+        
+            <div class="description"><p>The above example works through the use of the <code>__format__()</code> magic method.
+You can define custom format handling in your own objects by overriding
+this method. This gives you complete control over the format syntax used.</p></div>
+            
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            
+            
+            
+                <p class="notice">This operation is not available with Rust formatting.</p>
+            
+        
+        
+        <div class="setup">
+            <h3>Setup</h3>
+            <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">HAL9000</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__format__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">format</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;open-the-pod-bay-doors&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;I&#39;m afraid I can&#39;t do that.&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;HAL 9000&#39;</span>
+</pre></div>
+
+        </div>
+        
+        <div class="code">
+            
+            
+            <div class="python_new">
+                <h3>Python New</h3>
+                <div class="highlight"><pre><span></span><span class="s1">&#39;{:open-the-pod-bay-doors}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">HAL9000</span><span class="p">())</span>
+</pre></div>
+
+            </div>
+            
+            
+        </div>
+        
+        <div class="output">
+            <h3>Output</h3>
+            <pre><code><i>I</i><i>'</i><i>m</i><i> </i><i>a</i><i>f</i><i>r</i><i>a</i><i>i</i><i>d</i><i> </i><i>I</i><i> </i><i>c</i><i>a</i><i>n</i><i>'</i><i>t</i><i> </i><i>d</i><i>o</i><i> </i><i>t</i><i>h</i><i>a</i><i>t</i><i>.</i></code></pre>
+        </div>
+        
+    </section>
+                        
+                    
+                </section>
+            </div>
+            <footer>
+                <p>
+                    You might also like <a href="http://strftime.org/">Python strftime reference</a>
+                    by <a href="https://twitter.com/mccutchen">Will McCutchen</a>.
+                </p>
+                <p>
+                    Curated by <a href="https://twitter.com/ulope">Ulrich Petri</a> &amp; <a href="https://zerokspot.com/">Horst Gutmann</a> &amp; <a href="https://twitter.com/wdv4758h">Chiu-Hsiang Hsu</a><br>
+                    Version: <a href="https://github.com/wdv4758h/rustformat.info/tree/983ec94cddbd76bc6ddb34ca408a8e6d37355114">983ec94cddbd76bc6ddb34ca408a8e6d37355114</a> (built at 2016-08-08 12:53:39.551026+00:00)
+                </p>
+            </footer>
+        </div>
+
+        <!-- Analytics -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+            ga('create', 'UA-82137050-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+    </body>
+</html>
