@@ -17,8 +17,14 @@
         {% endif %}
         {% if example.details %}
             <div class="description">{{ example.details|markdown }}</div>
-            {% if not example.old %}
-                <p class="notice">This operation is not available with old-style formatting.</p>
+            {% if not example.python_old %}
+                <p class="notice">This operation is not available with Python old-style formatting.</p>
+            {% endif %}
+            {% if not example.python_new %}
+                <p class="notice">This operation is not available with Python new-style formatting.</p>
+            {% endif %}
+            {% if not example.rust %}
+                <p class="notice">This operation is not available with Rust formatting.</p>
             {% endif %}
         {% endif %}
         {% if example.setup %}
@@ -28,16 +34,22 @@
         </div>
         {% endif %}
         <div class="code">
-            {% if example.old %}
-                <div class="old">
-                    <h3>Old</h3>
-                    {{ example.old|highlight|safe }}
+            {% if example.python_old %}
+                <div class="python_old">
+                    <h3>Python Old</h3>
+                    {{ example.python_old|highlight|safe }}
                 </div>
             {% endif %}
-            {% if example.new %}
-            <div class="new">
-                <h3>New</h3>
-                {{ example.new|highlight|safe }}
+            {% if example.python_new %}
+            <div class="python_new">
+                <h3>Python New</h3>
+                {{ example.python_new|highlight|safe }}
+            </div>
+            {% endif %}
+            {% if example.rust %}
+            <div class="rust">
+                <h3>Rust</h3>
+                {{ example.rust|highlight_rust|safe }}
             </div>
             {% endif %}
         </div>
@@ -63,17 +75,20 @@
     <body>
         <div class="github-fork-ribbon-wrapper right">
             <div class="github-fork-ribbon">
-                <a href="https://github.com/ulope/pyformat.info">Contribute on GitHub</a>
+                <a href="https://github.com/wdv4758h/rustformat.info">Contribute on GitHub</a>
             </div>
         </div>
         <div id="page">
             <header>
-                <h1 id="logo"><b><i>Py</i>Format</b> Using <i>%</i> and <i>.format()</i> for great good!</h1>
+                <h1 id="logo">
+                    <b><i>Py</i>Format</b><b><i>Rust</i>Format</b></br>
+                    Using <i>%</i> and <i>.format()</i> and <i>format!</i> for great good!
+                </h1>
             </header>
             <div id="main">
                 <section id="teaser">
                     <p>
-                        Python has had awesome string formatters for many years but the documentation on them is far too theoretic and technical.
+                        <b>Python</b> has had awesome string formatters for many years but the documentation on them is far too theoretic and technical.
                         With this site we try to show you the most common use-cases covered by the <a href="https://docs.python.org/2/library/stdtypes.html#string-formatting">old</a> and <a href="https://docs.python.org/3/library/string.html#string-formatting">new</a> style string formatting API with practical examples.
                     </p>
                     <p>
@@ -86,7 +101,19 @@
                         <li><a href="https://docs.python.org/2/library/stdtypes.html#string-formatting">old style</a></li>
                         <li><a href="https://docs.python.org/3/library/string.html#string-formatting">new style</a></li>
                     </ul>
-                    <p>If you want to contribute more examples, feel free to create a pull-request on <a href="https://github.com/ulope/pyformat.info">Github</a>!</p>
+                    <hr>
+                    <p><b>Rust</b> has awesome string formatter, too. The <a href="https://doc.rust-lang.org/std/fmt/">documentation</a> explains it very well. With this site we try to compare the most common use-cases with Python's formatters.</p>
+                    <hr>
+                    <p>If you want to contribute more examples, feel free to create a pull-request on <a href="https://github.com/wdv4758h/rustformat.info">Github</a>!</p>
+                    <p>This site is modified from <a href="https://pyformat.info/">PyFormat</a></p>
+                </section>
+                <section id="language">
+                    <ul>
+                        Follow codes are tested with :
+                        {% for language in version.language_versions %}
+                        <li>{{ language }}</li>
+                        {% endfor %}
+                    </ul>
                 </section>
                 <section id="toc">
                     <h2>Table of Contents:</h2>
@@ -123,27 +150,20 @@
                     by <a href="https://twitter.com/mccutchen">Will McCutchen</a>.
                 </p>
                 <p>
-                    Curated by <a href="https://twitter.com/ulope">Ulrich Petri</a> &amp; <a href="https://zerokspot.com/">Horst Gutmann</a><br>
-                    Version: <a href="https://github.com/ulope/pyformat.info/tree/{{ version.revid }}">{{ version.revid }}</a> (built at {{ version.datetime }})
+                    Curated by <a href="https://twitter.com/ulope">Ulrich Petri</a> &amp; <a href="https://zerokspot.com/">Horst Gutmann</a> &amp; <a href="https://twitter.com/wdv4758h">Chiu-Hsiang Hsu</a><br>
+                    Version: <a href="https://github.com/wdv4758h/rustformat.info/tree/{{ version.revid }}">{{ version.revid }}</a> (built at {{ version.datetime }})
                 </p>
             </footer>
         </div>
 
-        <!-- Piwik -->
-        <script type="text/javascript">
-          var _paq = _paq || [];
-          _paq.push(['trackPageView']);
-          _paq.push(['enableLinkTracking']);
-          (function() {
-            var u="https://piwik.ulo.pe/piwik/";
-            _paq.push(['setTrackerUrl', u+'piwik.php']);
-            _paq.push(['setSiteId', 2]);
-            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-            g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
-          })();
+        <!-- Analytics -->
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+            ga('create', 'UA-82137050-1', 'auto');
+            ga('send', 'pageview');
         </script>
-        <noscript><p><img src="//piwik.ulo.pe/piwik/piwik.php?idsite=2" style="border:0;" alt="" /></p></noscript>
-        <!-- End Piwik Code -->
-
     </body>
 </html>

@@ -9,6 +9,7 @@ from logging import getLogger
 from collections import namedtuple
 from pathlib import Path
 from textwrap import indent
+from subprocess import run, PIPE
 
 import jinja2
 import sass
@@ -30,9 +31,9 @@ OUTPUT_RE = rex(r"""s/^.*?assert .*? == ['"](.*)['"].*?# output$\n/\1/""")
 
 Section = namedtuple('Section', ('name', 'title', 'details', 'examples'))
 
-Example = namedtuple("Example", ('name', 'title', 'details', 'setup', 'old', 'new', 'output'))
+Example = namedtuple("Example", ('name', 'title', 'details', 'setup', 'python_old', 'python_new', 'rust', 'output'))
 
-Version = namedtuple('Version', ('revid', 'datetime'))
+Version = namedtuple('Version', ('revid', 'datetime', 'language_versions'))
 
 
 def unparse(node, strip=None):
@@ -44,11 +45,16 @@ def unparse(node, strip=None):
     return result
 
 
+def generate_laugage_versions():
+    python = "Python version: " + run(["python", "--version"], stdout=PIPE).stdout.decode()
+    rust = "Rust version: " + run(["rustc", "--version"], stdout=PIPE).stdout.decode()
+    return [python, rust]
+
 def generate_version():
     revid = subprocess.check_output(
         ['git', 'rev-parse', 'HEAD']).decode('utf-8').rstrip()
     dt = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
-    return Version(revid=revid, datetime=dt)
+    return Version(revid=revid, datetime=dt, language_versions=generate_laugage_versions())
 
 
 def compile_sass(source_path, target_path_pattern):
@@ -101,6 +107,10 @@ def highlight(value):
     return pygments.highlight(value, pygments.lexers.PythonLexer(),
                               pygments.formatters.HtmlFormatter())
 
+def highlight_rust(value):
+    return pygments.highlight(value, pygments.lexers.RustLexer(),
+                              pygments.formatters.HtmlFormatter())
+
 
 def generate_html(content, output_file):
     log.info("Rendering HTML.")
@@ -108,6 +118,7 @@ def generate_html(content, output_file):
     env.filters['markdown'] = markdown.markdown
     env.filters['lettering'] = split_letters
     env.filters['highlight'] = highlight
+    env.filters['highlight_rust'] = highlight_rust
     tmpl = env.get_template('index.html')
     style_mapping = generate_css(Path('assets/sass'), Path('assets/css'))
     with open(str(output_file), 'w', encoding='utf-8') as fp:
@@ -130,6 +141,7 @@ def parse_docstring(docstring):
 def parse_function(node):
     old_style = None
     new_style = None
+    rust_style = None
     output = None
     setup = []
     setup_done = False
@@ -146,6 +158,9 @@ def parse_function(node):
         if isinstance(n, _ast.Assign) and n.targets[0].id == 'new_result':
             setup_done = True
             new_style = unparse(n.value, strip=True)
+        if isinstance(n, _ast.Assign) and n.targets[0].id == 'rust_result':
+            setup_done = True
+            rust_style = unparse(n.value, strip=True).strip("'")
         if isinstance(n, _ast.Assert) and isinstance(
                 n.test.comparators[0], _ast.Str):
             setup_done = True
@@ -163,6 +178,7 @@ def parse_function(node):
         setup or "",
         old_style or "",
         new_style or "",
+        rust_style or "",
         output or ""
     )
 
